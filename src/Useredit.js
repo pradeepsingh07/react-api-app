@@ -4,81 +4,87 @@ import "bootstrap/dist/css/bootstrap.css";
 import { Notyf } from "notyf";
 import "notyf/notyf.min.css";
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate, Route, Router, redirect } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+  Route,
+  Router,
+  redirect,
+  useParams,
+} from "react-router-dom";
 
 function Adduser() {
-  const [loading, setLoading] = useState(false);
+  const [data, setdata] = useState([]);
+  const { id } = useParams();
   const navigate = useNavigate();
-  const [inputs, setinputs] = useState({
-    name: "",
-    email: "",
-    password: "",
-  });
+
+  useEffect(() => {
+    singlegetuser();
+  }, []);
 
   let names, values;
   const handleinput = (event) => {
     names = event.target.name;
     values = event.target.value;
-    setinputs({ ...inputs, [names]: values });
+    setdata({ ...data, [names]: values });
   };
 
+  function singlegetuser() {
+    var config = {
+      headers: {
+        token: "cbd392c01352b0cbd392c01352b0",
+        
+      },
+      params: {
+        id: id,
+      },
+    };
+    axios
+      .get("https://dizbizcard.com/api/singleuser.php", config)
+      .then((response) => {
+        setdata(response.data.data);
+      });
+  }
+
   const submitdata = (e) => {
-    setLoading(true);
     e.preventDefault();
     var config = {
       headers: {
-        token: "cbd392c01352b0cbd392c01352b0",                             
+        token: "cbd392c01352b0cbd392c01352b0",
       },
     };
-
-    if (inputs.name == "" || inputs.email == "" || inputs.password == "") {
-      var notyf = new Notyf();
-      notyf.error("All Required Filed");
-      setLoading(false);
-    } else {
-      axios.post("https://dizbizcard.com/api/insertdata.php",{
-          name: inputs.name,
-          email: inputs.email,
-          password: inputs.password,
+    axios
+      .post(
+        "https://dizbizcard.com/api/updateuser.php",
+        {
+          name: data.name,
+          email: data.email,
+          password: data.password,
+          id: data.id,
         },
         config
-      ).then(() =>{
+      )
+      .then((response) => {        
         navigate("/");
-        setLoading(false);
         var notyf = new Notyf();
-        notyf.success("Data Inserted");
-      })
-    
-    }
+        notyf.success("Data Updated");
+      });
   };
 
   return (
     <>
-      {loading ? (
-        <div className="load">
-          <div className="loader"></div>
-          <div className="loader-inner">
-            <div className="spinner-border text-primary" role="status">
-              <span className="sr-only"></span>
-            </div>
-            <div className="text-loader">Loading...</div>
-          </div>
-        </div>
-      ) : (
-        ""
-      )}
       <div className="container mt-5">
         <div className="col-md-6 offset-md-3 shadow p-5 rounded">
           <Link className="btn btn-danger mb-4" to="/">
             <i className="bi bi-arrow-left"></i> Back
           </Link>
-          <h4 className="text-center my-3">Create User</h4>
+          <h4 className="text-center my-3">Update User</h4>
           <form autoComplete="off" method="post" onSubmit={submitdata}>
             <div className="mb-3">
               <label className="form-label">Name</label>
               <input
                 type="text"
-                value={inputs.name}
+                value={data.name}
                 onChange={handleinput}
                 name="name"
                 className="form-control"
@@ -88,7 +94,7 @@ function Adduser() {
               <label className="form-label">Email</label>
               <input
                 type="text"
-                value={inputs.email}
+                value={data.email}
                 onChange={handleinput}
                 name="email"
                 className="form-control"
@@ -97,11 +103,17 @@ function Adduser() {
             <div className="mb-3">
               <label className="form-label">Password</label>
               <input
-                type="password"
-                value={inputs.password}
+                type="text"
+                value={data.password}
                 onChange={handleinput}
                 name="password"
                 className="form-control"
+              />
+              <input
+                type="hidden"
+                value={data.id}
+                onChange={handleinput}
+                name="id"
               />
             </div>
             <button type="submit" className="btn btn-primary">
